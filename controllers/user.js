@@ -4,7 +4,8 @@ const {
 } = require("../middlewares/jwt");
 const User = require("../models/user");
 const asyncHandler = require("express-async-handler");
-
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 const register = asyncHandler(async (req, res) => {
   const { email, password, firstname, lastname } = req.body;
   if (!email || !password || !firstname || !lastname) {
@@ -74,4 +75,56 @@ const getCurrentUser = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { register, login, getCurrentUser };
+const refreshAccessToken = asyncHandler(async (req, res) => {
+  const cookie = req.cookies;
+  if (!cookie?.refreshToken)
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  jwt.verify(
+    cookie?.refreshToken,
+    process.env.JWT_SECRET,
+    async (err, decode) => {
+      if (err)
+        return res.status(403).json({ success: false, message: "Forbidden" });
+      const user = await User.findOne({
+        _id: decode._id,
+        refreshToken: cookie.refreshToken,
+      });
+      if (!user)
+        return res.status(403).json({ success: false, message: "Forbidden" });
+      const accessToken = generateAccessToken(user._id, user.role);
+      return res.status(200).json({
+        success: true,
+        message: "Refresh access token successfully",
+        accessToken: accessToken,
+      });
+    }
+  );
+});
+
+const logout = asyncHandler(async (req, res) => {
+  const cookie = req.cookies;
+  if (!cookie || !cookie?.refreshToken)
+    throw new Error("No refresh token in cookie");
+  //Xóa cookie ở Database
+  await User.findOneAndUpdate(
+    { refreshToken: cookie.refreshToken },
+    { refreshToken: "" },
+    { new: true }
+  );
+  //Xóa cookie ở Cookie
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    sameSite: "none",
+    secure: true,
+  });
+  return res
+    .status(200)
+    .json({ success: true, message: "Logout successfully" });
+});
+module.exports = {
+  register,
+  login,
+  getCurrentUser,
+  refreshAccessToken,
+  logout,
+};
