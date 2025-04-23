@@ -6,4 +6,6 @@ router.post("/login", Ctrls.login);
 router.get("/current", verifyAccessToken, Ctrls.getCurrentUser);
 router.post("/refresh-token", Ctrls.refreshAccessToken);
 router.get("/logout", Ctrls.logout);
+router.get("/forgot-password", Ctrls.forgotPassword);
+router.put("/reset-password", Ctrls.resetPassword);
 module.exports = router;

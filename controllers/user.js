@@ -6,6 +6,8 @@ const User = require("../models/user");
 const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
+const sendMail = require("../utils/sendMail");
+const crypto = require("crypto");
 const register = asyncHandler(async (req, res) => {
   const { email, password, firstname, lastname } = req.body;
   if (!email || !password || !firstname || !lastname) {
@@ -121,10 +123,61 @@ const logout = asyncHandler(async (req, res) => {
     .status(200)
     .json({ success: true, message: "Logout successfully" });
 });
+
+// Client gửi email
+// Server check email có hợp lệ hay không => Gửi mail + kèm theo link (password change token)
+// Client check mail => click link
+// Client gửi api kèm token
+// Check token có giống với token mà server gửi mail hay không
+// Change password
+
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.query;
+  if (!email) throw new Error("Missing email");
+  const user = await User.findOne({ email });
+  if (!user) throw new Error("User not found");
+  const resetToken = user.createPasswordChangedToken();
+  await user.save();
+
+  const html = `Please click the link below to change your password. This link will expire in 15 minutes from now. <a href=${process.env.URL_SERVER}/user/reset-password/${resetToken}>Click here</a>`;
+
+  const data = {
+    email,
+    html,
+  };
+  const rs = await sendMail(data);
+  return res.status(200).json({
+    success: true,
+    rs,
+  });
+});
+const resetPassword = asyncHandler(async (req, res) => {
+  const { password, token } = req.body;
+  if (!password || !token) throw new Error("Missing password or token");
+  const passwordResetToken = crypto
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
+  const user = await User.findOne({
+    passwordResetToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+  if (!user) throw new Error("Token is invalid or has expired");
+  user.password = password;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+  return res.status(200).json({
+    success: true,
+    message: "Reset password successfully",
+  });
+});
 module.exports = {
   register,
   login,
   getCurrentUser,
   refreshAccessToken,
   logout,
+  forgotPassword,
+  resetPassword,
 };
