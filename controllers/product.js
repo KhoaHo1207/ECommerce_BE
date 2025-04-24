@@ -12,14 +12,72 @@ const createProduct = asyncHandler(async (req, res) => {
     data: newProduct,
   });
 });
-
+//Filtering, sorting & pagination
 const getProducts = asyncHandler(async (req, res) => {
-  const product = await Product.find();
-  return res.status(200).json({
-    success: true,
-    message: "Get products successfully",
-    data: product,
-  });
+  const queries = { ...req.query };
+
+  // Loại bỏ các field không dùng để lọc
+  const excludeFields = ["limit", "sort", "page", "fields"];
+  excludeFields.forEach((el) => delete queries[el]);
+
+  // Hàm format các toán tử như gte, lte thành cú pháp Mongoose
+  const formatQueryOperators = (queries) => {
+    const formatted = {};
+    Object.keys(queries).forEach((key) => {
+      const match = key.match(/(.*)\[(gte|gt|lt|lte)]/);
+      if (match) {
+        const field = match[1];
+        const operator = `$${match[2]}`;
+        if (!formatted[field]) formatted[field] = {};
+        formatted[field][operator] = queries[key];
+      } else {
+        formatted[key] = queries[key];
+      }
+    });
+    return formatted;
+  };
+
+  const formattedQueries = formatQueryOperators(queries);
+
+  // Thêm filter tìm kiếm theo tiêu đề
+  if (queries?.title)
+    formattedQueries.title = { $regex: queries.title, $options: "i" };
+
+  // Tạo truy vấn
+  let queryCommand = Product.find(formattedQueries);
+
+  // Sắp xếp
+  if (req.query.sort) {
+    const sortBy = req.query.sort.split(",").join(" ");
+    queryCommand = queryCommand.sort(sortBy); // Ví dụ: sort=price,-createdAt
+  } else {
+    queryCommand = queryCommand.sort("-createdAt"); // Mặc định: mới nhất
+  }
+
+  // Phân trang
+  const page = +req.query.page || 1;
+  const limit = +req.query.limit || 10;
+  const skip = (page - 1) * limit;
+  queryCommand = queryCommand.skip(skip).limit(limit);
+
+  try {
+    const [response, counts] = await Promise.all([
+      queryCommand,
+      Product.find(formattedQueries).countDocuments(),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      message: "Lấy danh sách sản phẩm thành công",
+      totalProduct: counts,
+      limit: limit,
+      currentPage: page,
+      totalPages: Math.ceil(counts / limit),
+      data: response,
+    });
+  } catch (err) {
+    throw new Error(err.message);
+  }
 });
 
 const getProduct = asyncHandler(async (req, res) => {
