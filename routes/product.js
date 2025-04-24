@@ -6,6 +6,7 @@ const { isAdmin } = require("../middlewares/checkRole");
 router.post("/", [verifyAccessToken, isAdmin], Ctrls.createProduct);
 router.get("/", Ctrls.getProducts);
 router.get("/:pid", Ctrls.getProduct);
+router.put("/ratings", verifyAccessToken, Ctrls.ratings);
 router.put("/:pid", [verifyAccessToken, isAdmin], Ctrls.updateProduct);
 router.delete("/:pid", [verifyAccessToken, isAdmin], Ctrls.deleteProduct);
 module.exports = router;

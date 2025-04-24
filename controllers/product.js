@@ -1,3 +1,4 @@
+const { response } = require("express");
 const Product = require("../models/product");
 const asyncHandler = require("express-async-handler");
 const slugify = require("slugify");
@@ -145,10 +146,63 @@ const deleteProduct = asyncHandler(async (req, res) => {
     // data: deletedProduct,
   });
 });
+
+const ratings = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  const { star, comment, pid } = req.body;
+  if (!star || !pid) throw new Error("Missing Inputs");
+  const ratingProduct = await Product.findById(pid);
+  if (!ratingProduct)
+    return res.status(400).json({
+      success: false,
+      message: "Product not found",
+    });
+  const alreadyRating = ratingProduct?.ratings?.some(
+    (el) => el.postedBy.toString() === _id
+  );
+  if (alreadyRating) {
+    //update star & commnent
+    await Product.updateOne(
+      {
+        ratings: { $elemMatch: { postedBy: _id } },
+      },
+      {
+        $set: {
+          "ratings.$.star": star,
+          "ratings.$.comment": comment,
+        },
+      },
+      {
+        new: true,
+      }
+    );
+  } else {
+    //add star & comment
+    const response = await Product.findByIdAndUpdate(
+      pid,
+      {
+        $push: {
+          ratings: {
+            star: star,
+            comment: comment,
+            postedBy: _id,
+          },
+        },
+      },
+      { new: true }
+    );
+  }
+  return res.status(200).json({
+    success: true,
+    message: "Comment successfully",
+    data: response,
+  });
+});
 module.exports = {
   createProduct,
   getProduct,
   getProducts,
   updateProduct,
   deleteProduct,
+  ratings,
 };
