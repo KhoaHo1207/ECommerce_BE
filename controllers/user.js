@@ -188,7 +188,7 @@ const deleteUser = asyncHandler(async (req, res) => {
   const { _id } = req.query;
   if (!_id) throw new Error("Missing input");
   const response = await User.findByIdAndDelete(_id);
-  return res.status(200).json({
+  return res.status(203).json({
     success: response ? true : false,
     message: "Deleted user successfully",
     // data: response,

@@ -1,0 +1,11 @@
+const express = require("express");
+const router = express.Router();
+const Ctrls = require("../controllers/product");
+const { verifyAccessToken } = require("../middlewares/verifyToken");
+const { isAdmin } = require("../middlewares/checkRole");
+router.post("/", [verifyAccessToken, isAdmin], Ctrls.createProduct);
+router.get("/", Ctrls.getProducts);
+router.get("/:pid", Ctrls.getProduct);
+router.put("/:pid", [verifyAccessToken, isAdmin], Ctrls.updateProduct);
+router.delete("/:pid", [verifyAccessToken, isAdmin], Ctrls.deleteProduct);
+module.exports = router;
