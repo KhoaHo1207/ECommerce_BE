@@ -33,7 +33,13 @@ const getBlogs = asyncHandler(async (req, res) => {
 
 const getBlog = asyncHandler(async (req, res) => {
   const { bid } = req.params;
-  const blog = await Blog.findById(bid);
+  const blog = await Blog.findByIdAndUpdate(
+    bid,
+    {
+      $inc: { numberViews: 1 },
+    },
+    { new: true }
+  ).populate("reactions.user", "firstname lastname");
   if (!blog) {
     return res.status(404).json({
       success: false,
