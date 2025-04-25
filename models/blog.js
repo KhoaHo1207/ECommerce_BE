@@ -18,18 +18,28 @@ const blogSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    likes: [
+    // likes: [
+    //   {
+    //     type: mongoose.Types.ObjectId,
+    //     ref: "User",
+    //   },
+    // ],
+    // dislikes: [
+    //   {
+    //     type: mongoose.Types.ObjectId,
+    //     ref: "User",
+    //   },
+    // ],
+    reactions: [
       {
-        type: mongoose.Types.ObjectId,
-        ref: "User",
+        user: { type: mongoose.Types.ObjectId, ref: "User" },
+        type: {
+          type: String,
+          enum: ["like", "dislike", "love", "angry", "haha", "sad"],
+        },
       },
     ],
-    dislikes: [
-      {
-        type: mongoose.Types.ObjectId,
-        ref: "User",
-      },
-    ],
+
     image: {
       type: String,
       default:

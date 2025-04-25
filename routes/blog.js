@@ -8,6 +8,8 @@ router.get("/", Ctrls.getBlogs);
 router.get("/:bid", Ctrls.getBlog);
 router.put("/:bid", [verifyAccessToken, isAdmin], Ctrls.updateBlog);
 router.delete("/:bid", [verifyAccessToken, isAdmin], Ctrls.deleteBlog);
-router.put("/like/:bid", verifyAccessToken, Ctrls.likeBlog);
-router.put("/dislike/:bid", verifyAccessToken, Ctrls.dislikeBlog);
+// router.put("/like/:bid", verifyAccessToken, Ctrls.likeBlog);
+// router.put("/dislike/:bid", verifyAccessToken, Ctrls.dislikeBlog);
+router.put("/react/:bid", verifyAccessToken, Ctrls.reactToBlog);
+
 module.exports = router;

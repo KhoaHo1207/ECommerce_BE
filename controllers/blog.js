@@ -91,7 +91,7 @@ const deleteBlog = asyncHandler(async (req, res) => {
     1. Check xem người đó trước đó có dislike hay không => bỏ dislike
     2. Check xem người đó trước đó cá nhân dùng like hay không => bỏ like
 */
-
+/*
 const likeBlog = asyncHandler(async (req, res) => {
   const { _id: userId } = req.user;
   const { bid } = req.params;
@@ -173,6 +173,96 @@ const dislikeBlog = asyncHandler(async (req, res) => {
     },
   });
 });
+*/
+// const reactToBlog = asyncHandler(async (req, res) => {
+//   const { _id } = req.user;
+//   const { bid } = req.params;
+//   const { type } = req.body;
+
+//   if (!["like", "dislike", "neutral"].includes(type)) {
+//     return res.status(400).json({
+//       success: false,
+//       message: "Invalid reaction type",
+//     });
+//   }
+
+//   const blog = await Blog.findById(bid);
+//   if (!blog) {
+//     return res.status(404).json({
+//       success: false,
+//       message: "Blog not found",
+//     });
+//   }
+
+//   const updateOps = {
+//     $pull: { likes: _id, dislikes: _id },
+//   };
+
+//   if (type === "like") {
+//     updateOps.$addToSet = { likes: _id };
+//   } else if (type === "dislike") {
+//     updateOps.$addToSet = { dislikes: _id };
+//   }
+
+//   const updatedBlog = await Blog.findByIdAndUpdate(bid, updateOps, {
+//     new: true,
+//   });
+
+//   return res.status(200).json({
+//     success: true,
+//     message: "Reaction updated",
+//     data: updatedBlog,
+//   });
+// });
+const reactToBlog = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  const { bid } = req.params;
+  const { type } = req.body;
+
+  const validReactions = ["like", "dislike", "love", "angry", "haha", "sad"];
+  if (!type || !validReactions.includes(type)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid or missing reaction type.",
+    });
+  }
+
+  const blog = await Blog.findById(bid);
+  if (!blog) {
+    return res.status(404).json({
+      success: false,
+      message: "Blog not found.",
+    });
+  }
+
+  // Kiểm tra user đã từng react chưa
+  const existingReactionIndex = blog.reactions.findIndex(
+    (r) => r.user.toString() === _id
+  );
+
+  if (existingReactionIndex !== -1) {
+    const currentType = blog.reactions[existingReactionIndex].type;
+
+    if (currentType === type) {
+      // Nếu người dùng click lại cùng loại reaction → xóa reaction (bỏ like/dislike)
+      blog.reactions.splice(existingReactionIndex, 1);
+    } else {
+      // Nếu khác loại → update lại reaction
+      blog.reactions[existingReactionIndex].type = type;
+    }
+  } else {
+    // Nếu chưa từng react → thêm mới
+    blog.reactions.push({ user: _id, type });
+  }
+
+  await blog.save();
+
+  return res.status(200).json({
+    success: true,
+    message: "Reacted to blog successfully.",
+    data: blog,
+  });
+});
 
 module.exports = {
   createBlog,
@@ -180,6 +270,7 @@ module.exports = {
   getBlog,
   updateBlog,
   deleteBlog,
-  likeBlog,
-  dislikeBlog,
+  //   likeBlog,
+  //   dislikeBlog,
+  reactToBlog,
 };
