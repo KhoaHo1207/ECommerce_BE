@@ -17,8 +17,8 @@ var orderSchema = new mongoose.Schema({
     default: "Processing",
     enum: ["Processing", "Successed", "Cancelled"],
   },
-  payment: {},
-  orderBY: {
+  paymentIntent: {},
+  orderBy: {
     type: mongoose.Types.ObjectId,
     ref: "User",
   },

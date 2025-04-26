@@ -13,7 +13,7 @@ router.delete("/:pid", [verifyAccessToken, isAdmin], Ctrls.deleteProduct);
 router.put(
   "/upload-image/:pid",
   [verifyAccessToken, isAdmin],
-  uploader.single("images"),
+  uploader.array("images", 10),
   Ctrls.uploadImageProduct
 );
 module.exports = router;

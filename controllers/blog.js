@@ -270,6 +270,24 @@ const reactToBlog = asyncHandler(async (req, res) => {
   });
 });
 
+const uploadImageBlog = asyncHandler(async (req, res) => {
+  if (!req.file)
+    return res.status(400).json({
+      success: false,
+      message: "Missing file",
+    });
+  const response = await Blog.findByIdAndUpdate(
+    req.params.bid,
+    { image: req.file.path },
+    { new: true }
+  );
+  return res.status(200).json({
+    success: true,
+    message: "Upload image successfully",
+    data: response,
+  });
+});
+
 module.exports = {
   createBlog,
   getBlogs,
@@ -279,4 +297,5 @@ module.exports = {
   //   likeBlog,
   //   dislikeBlog,
   reactToBlog,
+  uploadImageBlog,
 };

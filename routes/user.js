@@ -14,5 +14,7 @@ router.put("/reset-password", Ctrls.resetPassword);
 // router.get("/users", isAdmin, Ctrls.getUsers);
 router.get("/", [verifyAccessToken, isAdmin], Ctrls.getUsers);
 router.delete("/", [verifyAccessToken, isAdmin], Ctrls.deleteUser);
+router.put("/address/:uid", verifyAccessToken, Ctrls.updateUserAddress);
+router.put("/cart", verifyAccessToken, Ctrls.updateCart);
 router.put("/:uid", [verifyAccessToken, isAdmin], Ctrls.updateUserByAdmin);
 module.exports = router;

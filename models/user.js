@@ -1,6 +1,7 @@
 const mongoose = require("mongoose"); // Erase if already required
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
+const { array } = require("../config/cloudinary.config");
 // Declare the Schema of the Mongo model
 var userSchema = new mongoose.Schema(
   {
@@ -30,11 +31,20 @@ var userSchema = new mongoose.Schema(
       type: String,
       default: "user",
     },
-    cart: {
+    cart: [
+      {
+        product: {
+          type: mongoose.Types.ObjectId,
+          ref: "Product",
+        },
+        quantity: Number,
+        color: String,
+      },
+    ],
+    address: {
       type: Array,
       default: [],
     },
-    address: [{ type: mongoose.Types.ObjectId, ref: "Address" }],
     wishlist: [{ type: mongoose.Types.ObjectId, ref: "Product" }],
     isBlocked: {
       type: Boolean,
