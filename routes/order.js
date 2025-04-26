@@ -4,9 +4,7 @@ const { verifyAccessToken } = require("../middlewares/verifyToken");
 const { isAdmin } = require("../middlewares/checkRole");
 const Ctrls = require("../controllers/order");
 router.post("/", verifyAccessToken, Ctrls.createOrder);
-// router.get("/", [verifyAccessToken, isAdmin], Ctrls.getOrders);
-// router.get("/:oid", [verifyAccessToken, isAdmin], Ctrls.getOrder);
-// router.put("/:oid", [verifyAccessToken, isAdmin], Ctrls.updateOrder);
-// router.delete("/:oid", [verifyAccessToken, isAdmin], Ctrls.deleteOrder);
-
+router.get("/", verifyAccessToken, Ctrls.getUserOrder);
+router.get("/admin", [verifyAccessToken, isAdmin], Ctrls.getOrderByAdmin);
+router.put("/status/:oid", [verifyAccessToken, isAdmin], Ctrls.updateStatus);
 module.exports = router;
