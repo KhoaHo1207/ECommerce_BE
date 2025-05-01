@@ -10,6 +10,7 @@ const blogRouter = require("./blog");
 const brandRouter = require("./brand");
 const couponRouter = require("./coupon");
 const orderRouter = require("./order");
+const insertRouter = require("./insert");
 const initRouter = (app) => {
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   app.use("/api/v1/user", userRouter);
@@ -20,6 +21,7 @@ const initRouter = (app) => {
   app.use("/api/v1/brand", brandRouter);
   app.use("/api/v1/coupon", couponRouter);
   app.use("/api/v1/order", orderRouter);
+  app.use("/api/v1/insert", insertRouter);
 
   app.use(NotFound);
   app.use(errHandler);
